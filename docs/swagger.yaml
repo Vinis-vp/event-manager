@@ -1,0 +1,121 @@
+openapi: 3.0.0
+info:
+  title: Event Manager API
+  version: 1.0.0
+  description: API para gerenciamento de eventos com autenticação JWT
+
+servers:
+  - url: http://localhost:3000
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Registrar novo usuário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string }
+                password: { type: string }
+                role: { type: string, enum: [organizer, viewer] }
+      responses:
+        201:
+          description: Usuário criado
+
+  /api/auth/login:
+    post:
+      summary: Login e geração de token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        200:
+          description: Token JWT
+
+  /api/events:
+    get:
+      summary: Listar eventos (autenticado)
+      parameters:
+        - in: query
+          name: date
+          schema: { type: string }
+        - in: query
+          name: location
+          schema: { type: string }
+      responses:
+        200:
+          description: Lista de eventos
+
+    post:
+      summary: Criar evento (organizer)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string }
+                date: { type: string, format: date }
+                location: { type: string }
+      responses:
+        201:
+          description: Evento criado
+
+  /api/events/{id}:
+    put:
+      summary: Atualizar evento
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string }
+                date: { type: string }
+                location: { type: string }
+      responses:
+        200:
+          description: Evento atualizado
+
+    delete:
+      summary: Deletar evento
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: Evento deletado
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
